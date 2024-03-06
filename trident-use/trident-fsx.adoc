@@ -1,0 +1,91 @@
+---
+sidebar: sidebar 
+permalink: trident-use/trident-fsx.html 
+keywords: Amazon FSx for NetApp ONTAP, FSx for ONTAP, deploy Trident, integrate Trident, Trident 
+summary: 使用 Astra Trident 搭配 Amazon FSX for NetApp ONTAP 、您可以確保在 Amazon Elastic Kubernetes Service （ EKS ）中執行的 Kubernetes 叢集可以佈建由 ONTAP 備份的區塊和檔案持續性磁碟區。 
+---
+= 使用Astra Trident搭配Amazon FSX for NetApp ONTAP 解決方案
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/what-is-fsx-ontap.html["Amazon FSX for NetApp ONTAP 產品"^] 是完全託管的AWS服務、可讓客戶啟動及執行採用NetApp ONTAP 資訊儲存作業系統的檔案系統。FSX for ONTAP VMware可讓您運用熟悉的NetApp功能、效能和管理功能、同時充分發揮儲存AWS資料的簡易性、敏捷度、安全性和擴充性。FSX for ONTAP Sfor支援ONTAP Isf供 檔案系統功能和管理API。
+
+
+
+== 總覽
+
+檔案系統是Amazon FSX的主要資源、類似ONTAP 於內部部署的一個叢集。在每個SVM中、您可以建立一個或多個磁碟區、這些磁碟區是儲存檔案系統中檔案和資料夾的資料容器。有了Amazon FSX for NetApp ONTAP 的功能、Data ONTAP 即可在雲端以託管檔案系統的形式提供支援。新的檔案系統類型稱為* NetApp ONTAP Sing*。
+
+使用Astra Trident搭配Amazon FSX for NetApp ONTAP 供應NetApp時、您可以確保在Amazon Elastic Kubernetes Service（EKS）中執行的Kubernetes叢集、能夠配置區塊和檔案以ONTAP 支援的持續磁碟區。
+
+適用於NetApp ONTAP 的Amazon FSX https://docs.netapp.com/ontap-9/topic/com.netapp.doc.dot-mgng-stor-tier-fp/GUID-5A78F93F-7539-4840-AB0B-4A6E3252CF84.html["FabricPool"^] 管理儲存層。它可讓您根據資料是否經常存取、將資料儲存在一個層級中。
+
+
+
+== 考量
+
+* SMB Volume：
++
+** 使用支援SMB磁碟區 `ontap-nas` 僅限驅動程式。
+** Astra Trident僅支援安裝在Windows節點上執行的Pod上的SMB磁碟區。
+
+
+* 在啟用自動備份的Amazon FSX檔案系統上建立的磁碟區、無法由Trident刪除。若要刪除PVCs、您需要手動刪除PV和FSXfor ONTAP the Sesfvolume。若要避免此問題：
++
+** 請勿使用「*快速建立*」來建立FSX for ONTAP the Suse檔案系統。快速建立工作流程可自動備份、但不提供退出選項。
+** 使用「*標準建立*」時、請停用自動備份。停用自動備份可讓Trident成功刪除磁碟區、而無需進一步手動介入。
++
+image:screenshot-fsx-backup-disable.png["AWS主控台停用自動備份的快照。"]
+
+
+
+
+
+
+
+== 適用於 ONTAP 驅動程式詳細資料的 FSX
+
+您可以ONTAP 使用下列驅動程式、將Astra Trident與Amazon FSX for NetApp整合：
+
+* `ontap-san`：配置的每個PV都是自己Amazon FSX for NetApp ONTAP 的LUN。
+* `ontap-san-economy`：配置的每個PV都是LUN、每個Amazon FSX for NetApp ONTAP 的LUN數量可設定。
+* `ontap-nas`：配置的每個PV都是完整的Amazon FSX for NetApp ONTAP Sf2 Volume。
+* `ontap-nas-economy`：每個配置的PV都是qtree、每個Amazon FSX for NetApp ONTAP 供應的qtree有可設定的配額樹數。
+* `ontap-nas-flexgroup`：配置的每個PV都是完整的Amazon FSX for NetApp ONTAP FlexGroup Sf2 Volume。
+
+
+如需驅動程式詳細資料、請參閱 link:../trident-use/ontap-nas.html["NAS 驅動程式"] 和 link:../trident-use/ontap-san.html["SAN 驅動程式"]。
+
+
+
+== 驗證
+
+Astra Trident提供兩種驗證模式。
+
+* 憑證型：Astra Trident會使用SVM上安裝的憑證、與FSX檔案系統上的SVM進行通訊。
+* 認證型：您可以使用 `fsxadmin` 檔案系統或的使用者 `vsadmin` 為SVM設定的使用者。
++
+
+WARNING: Astra Trident希望以 `vsadmin` SVM使用者或具有相同角色之不同名稱的使用者。適用於NetApp ONTAP 的Amazon FSX具備以下功能 `fsxadmin` 使用者只能有限地取代ONTAP 此功能 `admin` 叢集使用者：強烈建議使用 `vsadmin` 使用Astra Trident。
+
+
+
+您可以更新後端以在認證型和憑證型方法之間移動。不過、如果您嘗試提供*認證資料和認證*、後端建立將會失敗。若要切換至不同的驗證方法、您必須從後端組態中移除現有方法。
+
+如需啟用驗證的詳細資訊、請參閱您的驅動程式類型驗證：
+
+* link:ontap-nas-prep.html["ASNAS驗證ONTAP"]
+* link:ontap-san-prep.html["支援SAN驗證ONTAP"]
+
+
+
+
+== 如需詳細資訊、請參閱
+
+* https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/what-is-fsx-ontap.html["Amazon FSX for NetApp ONTAP 的支援文件"^]
+* https://www.netapp.com/blog/amazon-fsx-for-netapp-ontap/["Amazon FSX for NetApp ONTAP 的部落格文章"^]
+
