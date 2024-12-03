@@ -68,11 +68,6 @@ link:https://docs.netapp.com/us-en/trident-2204/index.html["22.04"^]
  a| 
 link:https://docs.netapp.com/us-en/trident-2201/index.html["22.01"^]
 | -- | 2024 年 1 月 | 2025 年 1 月 
-
-
- a| 
-link:https://docs.netapp.com/us-en/trident-2110/index.html["21.10."^]
-| -- | -- | 2024 年 10 月 
 |===
 
 NOTE: 21.07之前的版本、請重新導向至舊版文件網站。
